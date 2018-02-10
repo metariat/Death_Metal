@@ -1,35 +1,70 @@
+---
+title: "Death Metal's development"
+author: "Quang DO"
+date: "10 février 2018"
+output: 
+  html_document:
+    number_sections: true
+    css: custom.css
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Loading data {.tabset}
+
+```{r loading libraries, message = FALSE, warning = FALSE}
 library(data.table)
 library(plotly)
-library("tm")
-library("SnowballC")
-library("wordcloud")
-library("RColorBrewer")
+library(tm)
+library(SnowballC)
+library(wordcloud)
+library(RColorBrewer)
 
-#####################################################################
-#                      Data preparation                             #
-#####################################################################
 setwd("C:/documents/xq.do/Desktop/Kaggle/Death_Metal/")
 
 albums = fread("./data/albums.csv", stringsAsFactors = T)
 bands = fread("./data/bands.csv", stringsAsFactors = T)
 reviews = fread("./data/reviews.csv", stringsAsFactors = T)
 
-print(paste0("There are ", dim(bands)[1], " death metal bands in the world"))
-print(paste0("There are ", dim(albums)[1], " death metal albums in the world"))
-
 #-----      formatting     -----#
 bands[, formed_in := as.numeric(as.character(formed_in))]
+```
 
-#First Death Metal bands?
+# Some simple statistics {.tabset}
+
+## The first look
+
+Death metal is a very big genre of metal, can can be considered as the most violent genre together with black metal. The first thing to do here is to look at how many death metal bands / albums there are in the world?
+
+```{r first look}
+print(paste0("There are ", dim(bands)[1], " death metal bands in the world"))
+print(paste0("There are ", dim(albums)[1], " death metal albums in the world"))
+```
+
+
+## World's first metal band?
+```{r first band}
 first_band = bands[ , .SD[which.min(formed_in)]]
 print(paste0("The first deth metal band is: ", first_band$name))
 print(paste0("They were found in ", first_band$formed_in, " in ", first_band$country))
+```
 
-#First metal album?
+What? Wait, the first death metal band is not Possessed? Ah the problem here is that "Satan's Host" was found before Possessed and changed their genre afterwards.
+
+
+## First album?
+```{r first album}
 first_album = albums[, .SD[which.min(year)]]
 print(paste0("World's first death metal album is: ", first_album$title, " released in ", first_album$year))
+```
 
-#Cumulative number of bands and album though the year?
+
+# Cumulative number of bands and albums? {.tabset}
+
+```{r cum nb of band}
 bands[, nb.of.band := .N, by = formed_in]
 band.count = unique(bands[, c("nb.of.band", "formed_in")])
 band.count = band.count[order(formed_in)]
@@ -48,14 +83,16 @@ p1 = plot_ly(band.album, x = ~year, y = ~nb.of.band.cum, name = 'number of bands
   add_trace(y = ~nb.of.album.cum, name = 'number of albums', mode = 'lines+markers') %>%
   layout(yaxis = list(title = FALSE), legend = list(x = 0.1, y = 0.9))
 p1
+```
 
-#number of new bands & albums?
-p2 = plot_ly(band.album, x = ~year, y = ~nb.of.band, name = 'number of new bands', type = "scatter", mode = 'lines+markers') %>%
-  add_trace(y = ~nb.of.album, name = 'number of new albums', mode = 'lines+markers') %>%
-  layout(yaxis = list(title = FALSE), legend = list(x = 0.1, y = 0.9))
-p2
+The fact that there are more bands than albums suggests that there are a lot of cover bands (bands withou any released album)
 
 
+#Cover bands development?
+
+So let's take a look at the development of the cover bands
+
+```{r cover band}
 #Number of bands without albums per year
 cover.band = merge(bands, albums, by.x = "id", by.y = "band", all.x = T)
 cover.band = cover.band[!is.na(year)][, nb.of.cover.band := .N, by = formed_in]
@@ -65,13 +102,26 @@ p3 = plot_ly(cover.band, x = ~formed_in, y = ~nb.of.cover.band, type = "scatter"
   layout(yaxis = list(title = FALSE), legend = list(x = 0.1, y = 0.9),
          title = 'number of new cover bands')
 p3
+```
+
+# number of new bands? {.tabset}
+
+```{r nb of new bands}
+p2 = plot_ly(band.album, x = ~year, y = ~nb.of.band, name = 'number of new bands', type = "scatter", mode = 'lines+markers') %>%
+  add_trace(y = ~nb.of.album, name = 'number of new albums', mode = 'lines+markers') %>%
+  layout(yaxis = list(title = FALSE), legend = list(x = 0.1, y = 0.9))
+p2
+```
+
+We can see that 2005 is the prime year of forming a death metal band.
 
 
-#Number of distinct genres of bands formed in each year.
+# Death metal subgenre
 
+what are the main subgenre of death metal? what is the distribution of its subgenres?
 
-
-
+```{r dm subgenres}
+#Distribution of main genre?
 #Distribution of main genre?
 bands[, genre := as.character(genre)]
 bands[, genre1 := sapply(genre, function(x) strsplit(x, '|', fixed = T)[[1]][1])]
@@ -90,8 +140,15 @@ p5 = plot_ly(labels = ~genre.count$genre1, values = ~genre.count$count) %>%
          xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
          yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
 p5
+```
 
 
+
+# Fastest developped genres
+
+What sub-genres of Death Metal develop faster more than the other?
+
+```{r subgenre development}
 #Which subgenre develops faster?
 main.genre = unique(genre.count$genre1)
 main.genre = main.genre[1:8]
@@ -119,7 +176,16 @@ p6 = plot_ly(x     = ~main.genre.dev$year,
             title = "number of new albums by genre")
 
 p6
+```
 
+
+
+
+# Most productive bands
+
+The productivity here is defined by the number of album a band releases
+
+```{r productive bands}
 #Which bands are most productive in terms of number of albums?
 album.count.by.bands = albums[, list("album.count" = .N),
                               by = band]
@@ -138,8 +204,16 @@ p7 = plot_ly(x = album.count.by.bands$album.count,
     layout(margin = list(l = 200))
   
 p7
+```
 
 
+Cirle is the most productive band with 31 albums in total, followed by Morcegos and Transmetal with 23 albums each. I only know Darkthrone, Therion & Napalm Death in this list.
+
+# Most popular albums
+
+The popularity here is defined by the number of reviews an album receives on metal-archives.com
+
+```{r popular album}
 #which albums are most popular? (by number of reviews)
 albums.band = merge(albums, bands[, c("name", "id")], by.x = "band", by.y = "id", all.x = T)
 popu.albums = merge(albums.band, reviews[, c("album", "score")],
@@ -155,7 +229,12 @@ p8 = plot_ly(x = popu.albums$nb.reviews,
              orientation = 'h') %>%
   layout(margin = list(l = 500))
 p8
+```
 
+
+# Best albums
+
+```{r best albums}
 #best album?
 best.albums = merge(albums.band, reviews[, c("album", "score")],
                     by.x = "id", by.y = "album",
@@ -173,11 +252,14 @@ p8 = plot_ly(x = best.albums$note,
              orientation = 'h') %>%
   layout(margin = list(l = 300))
 p8
+```
 
-#average score by genre? -> Next step
 
-#which countries have the most death metal bands?
-# - world map & bar plot
+# Most metal countries
+
+we can see the number of death metal bands in a country
+
+```{r band country}
 country.band.count = bands[, list("bands.count" = .N),
                            by = country][1:15, ]
 p10 = plot_ly(x = country.band.count$bands.count, 
@@ -186,11 +268,15 @@ p10 = plot_ly(x = country.band.count$bands.count,
              orientation = 'h') %>%
   layout(margin = list(l = 300))
 p10
+```
 
+# Lyrics {.tabset}
 
+## helper funtion
 
-#lyrics word cloud of each genre
+We need to first define a helper function to use after.
 
+```{r word cloud}
 toSpace <- content_transformer(function (x , pattern ) gsub(pattern, " ", x))
 plot.me.the.cloud = function(text){
   docs = Corpus(text)
@@ -222,21 +308,37 @@ plot.me.the.cloud = function(text){
   set.seed(1234)
   wordcloud(words = d$word, freq = d$freq, min.freq = 1,
             max.words=50, random.order=FALSE, rot.per=0.35, 
-            colors=brewer.pal(8, "Dark2"))}
+            colors=brewer.pal(8, "Dark2"))
+}
+```
 
+## overall
 
+```{r}
 text = VectorSource(bands[theme != "N/A", ]$theme)
 plot.me.the.cloud(text)
+```
 
+## Melodic Death Metal
+
+```{r}
 text = VectorSource(bands[genre1 == "Melodic Death Metal" & theme != "N/A", ]$theme)
 plot.me.the.cloud(text)
+```
 
+## Brutal Death Metal
+
+```{r}
 text = VectorSource(bands[genre1 == "Brutal Death Metal" & theme != "N/A", ]$theme)
 plot.me.the.cloud(text)
+```
 
+
+## Black/Death Metal
+
+```{r}
 text = VectorSource(bands[genre1 == "Black/Death Metal" & theme != "N/A", ]$theme)
 plot.me.the.cloud(text)
-
-
+```
 
 
