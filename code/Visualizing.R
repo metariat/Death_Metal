@@ -160,7 +160,7 @@ p8
 best.albums = merge(albums.band, reviews[, c("album", "score")],
                     by.x = "id", by.y = "album",
                     all.x = T)
-best.albums[, name := paste0(name, " - '", title, "'")][!is.na(score), ]
+best.albums = best.albums[, name := paste0(name, " - '", title, "'")][!is.na(score), ]
 best.albums = best.albums[, list("note" = round(mean(score, na.rm = T), 2),
                                  "nb.review" = .N), 
                           by = c("name")]
