@@ -81,9 +81,17 @@ album.count[, nb.of.album.cum := cumsum(nb.of.album)]
 
 band.album = merge(album.count, band.count, by.x = "year", by.y = "formed_in")
 
-p1 = plot_ly(band.album, x = ~year, y = ~nb.of.band.cum, name = 'number of bands', type = "scatter", mode = 'lines+markers') %>%
-  add_trace(y = ~nb.of.album.cum, name = 'number of albums', mode = 'lines+markers') %>%
-  layout(yaxis = list(title = FALSE), legend = list(x = 0.1, y = 0.9))
+p1 = plot_ly(band.album, 
+             x       = ~year, 
+             y       = ~nb.of.band.cum, 
+             name    = 'number of bands', 
+             type    = "scatter", 
+             mode    = 'lines+markers') %>%
+   add_trace(y       = ~nb.of.album.cum, 
+             name    = 'number of albums', 
+             mode    = 'lines+markers') %>%
+   layout(   yaxis   = list(title = FALSE), 
+             legend  = list(x = 0.1, y = 0.9))
 p1
 ```
 
@@ -101,9 +109,14 @@ cover.band = merge(bands, albums, by.x = "id", by.y = "band", all.x = T)
 cover.band = cover.band[!is.na(year)][, nb.of.cover.band := .N, by = formed_in]
 cover.band = unique(cover.band[order(formed_in), c("nb.of.cover.band", "formed_in")])
 
-p3 = plot_ly(cover.band, x = ~formed_in, y = ~nb.of.cover.band, type = "scatter", mode = 'lines+markers') %>%
-  layout(yaxis = list(title = FALSE), legend = list(x = 0.1, y = 0.9),
-         title = 'number of new cover bands')
+p3 = plot_ly(cover.band, 
+             x    = ~formed_in, 
+             y    = ~nb.of.cover.band, 
+             type = "scatter", 
+             mode = 'lines+markers') %>%
+  layout(yaxis  = list(title = FALSE), 
+         legend = list(x = 0.1, y = 0.9),
+         title  = 'number of new cover bands')
 p3
 ```
 
@@ -111,9 +124,17 @@ p3
 # number of new bands {.tabset}
 
 ```{r nb of new bands}
-p2 = plot_ly(band.album, x = ~year, y = ~nb.of.band, name = 'number of new bands', type = "scatter", mode = 'lines+markers') %>%
-  add_trace(y = ~nb.of.album, name = 'number of new albums', mode = 'lines+markers') %>%
-  layout(yaxis = list(title = FALSE), legend = list(x = 0.1, y = 0.9))
+p2 = plot_ly(band.album, 
+             x    = ~year, 
+             y    = ~nb.of.band, 
+             name = 'number of new bands', 
+             type = "scatter",
+             mode = 'lines+markers') %>%
+      add_trace(y = ~nb.of.album, 
+            name  = 'number of new albums',
+            mode  = 'lines+markers') %>%
+      layout(yaxis  = list(title = FALSE), 
+             legend = list(x = 0.1, y = 0.9))
 p2
 ```
 
@@ -133,20 +154,23 @@ Here I considered only 10 main subgenres, the rest falls into the "other" catego
 #Distribution of main genre?
 bands[, genre := as.character(genre)]
 bands[, genre1 := sapply(genre, function(x) strsplit(x, '|', fixed = T)[[1]][1])]
-bands[, genre2 := sapply(genre, function(x) strsplit(x, '|', fixed = T)[[1]][2])]
-bands[, genre3 := sapply(genre, function(x) strsplit(x, '|', fixed = T)[[1]][3])]
-
 
 genre.count = bands[, list('count' = sum(genre != '')), by = genre1]
 genre.count = genre.count[order(-count)]
 genre.count[, genre1 := ifelse(count <= genre.count$count[11], "others", genre1)]
 
 
-p5 = plot_ly(labels = ~genre.count$genre1, values = ~genre.count$count) %>%
+p5 = plot_ly(labels = ~genre.count$genre1, 
+             values = ~genre.count$count) %>%
      add_pie(hole = 0.6) %>%
-     layout(title = "Distribution of death metal subgenre",  showlegend = T,
-         xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
-         yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE))
+     layout(title      = "Distribution of death metal subgenre", 
+            showlegend = T,
+            xaxis      = list(showgrid       = FALSE, 
+                              zeroline       = FALSE, 
+                              showticklabels = FALSE), 
+            yaxis      = list(showgrid       = FALSE, 
+                              zeroline       = FALSE, 
+                              showticklabels = FALSE))
 p5
 ```
 
@@ -190,9 +214,9 @@ p6 = plot_ly(x     = ~main.genre.dev$year,
              type  = "scatter",
              color = ~main.genre.dev$genre1, 
              mode  = "lines+markers") %>%
-     layout(yaxis = list(title = FALSE), legend = list(x = 0.1, y = 1),
-            title = "number of new albums by genre")
-
+     layout(yaxis  = list(title = FALSE), 
+            legend = list(x = 0.1, y = 1),
+            title  = "number of new albums by genre")
 p6
 ```
 
@@ -215,12 +239,12 @@ album.count.by.bands = album.count.by.bands[order(-album.count)]
 album.count.by.bands = album.count.by.bands[1:15, ]
 album.count.by.bands[, name := droplevels(name)]
 
-p7 = plot_ly(x = album.count.by.bands$album.count, 
-             y = reorder(album.count.by.bands$name, album.count.by.bands$album.count), 
-             type = 'bar', 
+p7 = plot_ly(x           = album.count.by.bands$album.count, 
+             y           = reorder(album.count.by.bands$name,
+                                   album.count.by.bands$album.count), 
+             type        = 'bar', 
              orientation = 'h') %>%
     layout(margin = list(l = 200))
-  
 p7
 ```
 
@@ -243,9 +267,10 @@ popu.albums[, name := paste0(name, " - '", title, "'")]
 popu.albums = popu.albums[, list("nb.reviews" = .N), by = c("name", "title")][order(-nb.reviews), ]
 popu.albums = popu.albums[1:20, ]
 
-p8 = plot_ly(x = popu.albums$nb.reviews, 
-             y = reorder(popu.albums$name, popu.albums$nb.reviews), 
-             type = 'bar', 
+p8 = plot_ly(x           = popu.albums$nb.reviews, 
+             y           = reorder(popu.albums$name,
+                                   popu.albums$nb.reviews), 
+             type        = 'bar', 
              orientation = 'h') %>%
   layout(margin = list(l = 500))
 p8
@@ -267,12 +292,13 @@ best.albums = best.albums[, list("note" = round(mean(score, na.rm = T), 2),
                                  "nb.review" = .N), 
                           by = c("name")]
 best.albums = best.albums[nb.review > 10, ][order(-note),][1:20, ]
-p8 = plot_ly(x = best.albums$note, 
-             y = reorder(best.albums$name, best.albums$note), 
-             text = best.albums$note,
+p8 = plot_ly(x            = best.albums$note, 
+             y            = reorder(best.albums$name,
+                                    best.albums$note), 
+             text         = best.albums$note,
              textposition = 'auto',
-             type = 'bar', 
-             orientation = 'h') %>%
+             type         = 'bar', 
+             orientation  = 'h') %>%
   layout(margin = list(l = 300))
 p8
 ```
@@ -287,9 +313,10 @@ we can see the number of death metal bands in a country. This is a high-biased n
 ```{r band country}
 country.band.count = bands[, list("bands.count" = .N),
                            by = country][1:15, ]
-p10 = plot_ly(x = country.band.count$bands.count, 
-             y = reorder(country.band.count$country, country.band.count$bands.count), 
-             type = 'bar', 
+p10 = plot_ly(x          = country.band.count$bands.count, 
+             y           = reorder(country.band.count$country,
+                                   country.band.count$bands.count), 
+             type        = 'bar', 
              orientation = 'h') %>%
   layout(margin = list(l = 300))
 p10
