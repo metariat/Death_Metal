@@ -33,9 +33,9 @@ reviews = fread("./data/reviews.csv", stringsAsFactors = T)
 bands[, formed_in := as.numeric(as.character(formed_in))]
 ```
 
-# Some simple statistics {.tabset}
+# Some simple statistics
 
-## The first look
+## Overall statistics
 
 Death metal is a very big genre of metal, can can be considered as the most violent genre together with black metal. The first thing to do here is to look at how many death metal bands / albums there are in the world?
 
@@ -44,15 +44,17 @@ print(paste0("There are ", dim(bands)[1], " death metal bands in the world"))
 print(paste0("There are ", dim(albums)[1], " death metal albums in the world"))
 ```
 
+There are about 40 000 death metal bands, divided by the world population of approximately 7.5 billions by 2017, that makes the ratio of 5.3 death metal bands per 1 millions habitants. 
 
-## World's first metal band?
+
+## World's First metal band
 ```{r first band}
 first_band = bands[ , .SD[which.min(formed_in)]]
 print(paste0("The first deth metal band is: ", first_band$name))
 print(paste0("They were found in ", first_band$formed_in, " in ", first_band$country))
 ```
 
-What? Wait, the first death metal band is not Possessed? Ah the problem here is that "Satan's Host" was found before Possessed and changed their genre afterwards.
+What? Wait, the first death metal band is not [Possessed](https://en.wikipedia.org/wiki/Possessed_(band))? Ah the problem here is that "Satan's Host" was found before Possessed and changed their genre afterwards.
 
 
 ## First album?
@@ -85,10 +87,11 @@ p1 = plot_ly(band.album, x = ~year, y = ~nb.of.band.cum, name = 'number of bands
 p1
 ```
 
-The fact that there are more bands than albums suggests that there are a lot of cover bands (bands withou any released album)
+Despite the fact that pop music is dominating music industry, we can witness the fast development of death metal scene recently. That's the good news.
 
+The fact that there are more bands than albums suggests that there are a lot of cover bands (bands withou any released album).
 
-#Cover bands development?
+#Cover bands development
 
 So let's take a look at the development of the cover bands
 
@@ -104,7 +107,8 @@ p3 = plot_ly(cover.band, x = ~formed_in, y = ~nb.of.cover.band, type = "scatter"
 p3
 ```
 
-# number of new bands? {.tabset}
+
+# number of new bands {.tabset}
 
 ```{r nb of new bands}
 p2 = plot_ly(band.album, x = ~year, y = ~nb.of.band, name = 'number of new bands', type = "scatter", mode = 'lines+markers') %>%
@@ -114,11 +118,15 @@ p2
 ```
 
 We can see that 2005 is the prime year of forming a death metal band.
+But wait, it can be a clumsy conclusion. Why there're more and more new albums every year, but not bands? Maybe the reason here is in the data base, bands formed after 2005 may take times to be recognized by metal-archives.com. And this is just a lag effect.
 
+# Death metal subgenres
 
-# Death metal subgenre
+Unlike the other types of music, metal owns a huge variety of genres, from Heavy Metal, Glam Metal, to Folk Metal, Black Metal, and many more. Even within the Death Metal genre, there're alot of sub-genres, this is the beauty of diversity, and that's what make metal so attractive.
 
-what are the main subgenre of death metal? what is the distribution of its subgenres?
+what are the main subgenres of death metal? what is the distribution of its subgenres?
+
+Here I considered only 10 main subgenres, the rest falls into the "other" category, for the sake of visualization. And the genre with only 5 bands may be not too significant.
 
 ```{r dm subgenres}
 #Distribution of main genre?
@@ -142,6 +150,16 @@ p5 = plot_ly(labels = ~genre.count$genre1, values = ~genre.count$count) %>%
 p5
 ```
 
+
+The root "Death Metal" remains the principal subgenre. 
+
+And yes, black death and death black are two different genre.
+
+Black Death metal is noted for their fast style of playing, guttural vocals, low tuned agressive guitar riffs, double kick drums.
+
+While Death Black metal is noted for their fast style of playing, guttural vocals, low tuned agressive guitar riffs, double kick drums.
+
+But they are not the same, ok? ...
 
 
 # Fastest developped genres
@@ -178,7 +196,7 @@ p6 = plot_ly(x     = ~main.genre.dev$year,
 p6
 ```
 
-
+The root genre - "Death Metal" witness the fastest development speed, while the other main subgenres have more or less the same growing speed.
 
 
 # Most productive bands
@@ -209,6 +227,8 @@ p7
 
 Cirle is the most productive band with 31 albums in total, followed by Morcegos and Transmetal with 23 albums each. I only know Darkthrone, Therion & Napalm Death in this list.
 
+
+
 # Most popular albums
 
 The popularity here is defined by the number of reviews an album receives on metal-archives.com
@@ -231,8 +251,11 @@ p8 = plot_ly(x = popu.albums$nb.reviews,
 p8
 ```
 
+Wow, a lot of familiar names here. Wintersun appears even twice in the top. Together with Death, Behemoth, Opeth (the early period), Cryptopsy, ... 
 
 # Best albums
+
+Album's goodness score is estimated by averaging the score in the reviews tab on metal-archives.com. Here I considered only albums with more than 10 reviews, for the sake of stability.
 
 ```{r best albums}
 #best album?
@@ -255,9 +278,11 @@ p8
 ```
 
 
+A lot of unknown albums for me. They are definitely worth a listen. That's cool, using data science to discover music to listen.
+
 # Most metal countries
 
-we can see the number of death metal bands in a country
+we can see the number of death metal bands in a country. This is a high-biased number, as highly populated country will consequently have more metal bands. We need to normalize the number of metal bands by the country population to have more meaningful number. This will be done in the next steps.
 
 ```{r band country}
 country.band.count = bands[, list("bands.count" = .N),
@@ -274,7 +299,7 @@ p10
 
 ## helper funtion
 
-We need to first define a helper function to use after.
+We need to first define a helper function to visualize the lyrics theme of each genre afterwards
 
 ```{r word cloud}
 toSpace <- content_transformer(function (x , pattern ) gsub(pattern, " ", x))
@@ -314,12 +339,19 @@ plot.me.the.cloud = function(text){
 
 ## overall
 
+"Death" is definitely the main topic of Death metal, nothing suprises. Other than that, "violence", "gore", "hate", "darkness" are the popular topics.
+
+
 ```{r}
 text = VectorSource(bands[theme != "N/A", ]$theme)
 plot.me.the.cloud(text)
 ```
 
+
 ## Melodic Death Metal
+
+Melodic Death Metal talks also about "society", "human", "philosophy", "war", "life", ...
+
 
 ```{r}
 text = VectorSource(bands[genre1 == "Melodic Death Metal" & theme != "N/A", ]$theme)
@@ -327,6 +359,9 @@ plot.me.the.cloud(text)
 ```
 
 ## Brutal Death Metal
+
+Ok, things are getting brutal, with topics like "violence", "murder", "torture", "blasphemy", ....
+
 
 ```{r}
 text = VectorSource(bands[genre1 == "Brutal Death Metal" & theme != "N/A", ]$theme)
@@ -336,9 +371,9 @@ plot.me.the.cloud(text)
 
 ## Black/Death Metal
 
+Blac Death metal treats topics much more correlated to the religion like "antichristianity", "satanism", "darkness", "antirelition", "evil", and even "sex", ....
+
 ```{r}
 text = VectorSource(bands[genre1 == "Black/Death Metal" & theme != "N/A", ]$theme)
 plot.me.the.cloud(text)
 ```
-
-
